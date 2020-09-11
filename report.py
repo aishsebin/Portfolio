@@ -19,7 +19,8 @@ FI=[4531082, 4892169, 206462, 4.56, 217467, 4.45, 45.94]
 Equity=[5218922,5362021.34,-62131.35,-1.19,117832,2.2,50.36]
 Commodities=[0]*7
 NonTrad=[0]*7
-
+Investment=225323
+Valuation=865489
 
 
 def add_legend(draw_obj, chart, data,doc):
@@ -96,7 +97,7 @@ draw.add(rect)
 my_title = String(doc.width/4+6, 135, 'Total Investment', fontSize=16)
 my_title.fillColor=colors.white
 draw.add(my_title)
-my_title = String(doc.width/4+15, 110, '$98752', fontSize=20)
+my_title = String(doc.width/4+15, 110, '$'+str(Investment), fontSize=20)
 my_title.fillColor=colors.white
 draw.add(my_title)
 story.append(draw)
@@ -115,7 +116,7 @@ draw.add(rect)
 my_title = String(41, 145, 'Current Valuation', fontSize=16)
 my_title.fillColor=colors.white
 draw.add(my_title)
-my_title = String(55, 122, '$222108', fontSize=20)
+my_title = String(55, 122, '$'+str(Valuation), fontSize=20)
 my_title.fillColor=colors.white
 draw.add(my_title)
 story.append(draw)
