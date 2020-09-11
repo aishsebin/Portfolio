@@ -75,6 +75,7 @@ frame2=Frame(doc.leftMargin+doc.width/2+6, doc.bottomMargin,doc.width/2-6, doc.h
 coverPage=PageTemplate(id='Cover', frames=[myFrame])
 columnTemplate=PageTemplate(id='TwoCol',frames=[frame1,frame2])
 
+#Page 1
 story.append(Image(logo, 2*inch, 2*inch, hAlign='RIGHT'))
 story.append(Spacer(0,10))
 story.append(Paragraph("CLIENT  PORTFOLIO",style_right))
@@ -87,6 +88,8 @@ story.append(Paragraph("Portfolio Holdings"+"."*100+"1",styleN))
 
 story.append(NextPageTemplate('TwoCol'))
 story.append(PageBreak())
+
+#Page 2
 story.append(Paragraph("Portfolio Holdings",styleH))
 story.append(Paragraph("As of "+str(portfolioDate),styleContent))
 
