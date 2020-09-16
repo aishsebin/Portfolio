@@ -16,15 +16,34 @@ import random
 
 
 
-
-
-def generatePDF(FI,Equity,Investment,Valuation,monthlyInv,monthlyVal,portfolioHoldings,tab_data,tab_data1):
+def generatePDF(FI,Equity,Investment,Valuation,monthlyInv,monthlyVal,equityTrades,bondTrades,net_position):
     
     logo= 'AIM_logo.jpg'
     portfolioDate= date.today()
     months=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     
-    
+    portfolioHoldings=[
+        ['','Cost basis($)','Value on\n'+str(date.today()), 'Unrealized\ngain/loss($)', 'Unrealized\ngain/loss(%)','% of\nPortfolio'],
+        ['Bond']+FI,
+        ['Equity']+Equity,
+        ['Total Portfolio']+[ round(a+b,2) for (a,b) in zip(FI,Equity) ]
+    ]
+
+    #Page 4 data
+    equity_data=[
+         ['Equity','ISIN','Sector','Qty','Buy \nAverage($)','Previous \nClosing Price($)','Holdings buy\nvalue($)','Current\n Value($)','Unrealized\n gain/loss ($)','Unrealized \ngain/loss(%)','','','% of Asset Class','% of portfolio']
+    ]+equityTrades
+
+    bond_data=[
+        ['Bond','ISIN','Sector','Qty','Buy \nAverage($)','Previous\nClosing Price($)','Holdings buy\nvalue($)','Current\nValue($)','Unrealized\n gain/loss ($)','Unrealized \ngain/loss(%)','Accrued\nInterest (%)','Maturity\n Date', '% of Asset Class','% of portfolio']
+    ]+bondTrades
+
+    portfolioDetails=equity_data+[['']*14]+bond_data
+
+    netPosition= [
+        ['Net Position','','','','','','Holdings buy\nvalue($)','Current\n Value($)','Unrealized\n gain/loss ($)','Unrealized \ngain/loss(%)','% of Asset Class','% of portfolio']
+    ] +net_position
+
     styles = getSampleStyleSheet()
     styleN = styles['Normal']
     styleContent= ParagraphStyle(name='content', parent=styles['Normal'], fontSize=18, leading=35)
@@ -57,7 +76,7 @@ def generatePDF(FI,Equity,Investment,Valuation,monthlyInv,monthlyVal,portfolioHo
     story.append(Spacer(0,15))
     story.append(Paragraph("Portfolio Holdings"+"."*103+"2",styleN))
     story.append(Spacer(0,15))
-    story.append(Paragraph("Net Position"+"."*112+"4",styleN))
+    story.append(Paragraph("Net Position"+"."*112+"3",styleN))
     story.append(Spacer(0,15))
 
     story.append(NextPageTemplate('ThreeSec'))
@@ -113,7 +132,7 @@ def generatePDF(FI,Equity,Investment,Valuation,monthlyInv,monthlyVal,portfolioHo
     story.append(Paragraph("Portfolio Holdings",styleH))
     story.append(Paragraph("As of "+str(portfolioDate),styleContent))
 
-    story.append(Spacer(0,70))
+    story.append(Spacer(0,100))
     story.append(Paragraph("Summary of Portfolio Holdings",style_center))
 
 
@@ -135,22 +154,42 @@ def generatePDF(FI,Equity,Investment,Valuation,monthlyInv,monthlyVal,portfolioHo
     story.append(Paragraph("Details of portfolio holdings",styleH))
     story.append(Paragraph("As of "+str(portfolioDate),styleContent))
     story.append(Spacer(0,20))
-    story.append(HRFlowable(width='100%', thickness=1, color=colors.black))
 
-    style=TableStyle([('BACKGROUND',(0,1),(-1,1),colors.whitesmoke),('ALIGN',(1,0),(-1,-1),'CENTER'),('FONTSIZE',(0,0),(-1,-1),8),('BODYTEXT',(0,0),(-1,-1),'TEXTWRAP')])
+    #style=[('BACKGROUND', (0,1), (-1,1), colors.whitesmoke),('ALIGN',(1,0),(-1,-1),'CENTER'),('FONTSIZE',(0,0),(-1,-1),8),('BODYTEXT',(0,0),(-1,-1),'TEXTWRAP'),('FONTNAME', (0,2), (-1,2), 'Helvetica-Bold')]
+    style2=[('ALIGN',(1,0),(-1,-1),'CENTER'),('FONTSIZE',(0,0),(-1,-1),8),('BODYTEXT',(0,0),(-1,-1),'TEXTWRAP'),('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),('LINEABOVE',(0,0),(-1,1),1,colors.black)]
+    style=[('ALIGN',(1,0),(-1,-1),'CENTER'),('FONTSIZE',(0,0),(-1,-1),8),('BODYTEXT',(0,0),(-1,-1),'TEXTWRAP'),('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),('LINEABOVE',(0,0),(-1,1),1,colors.black),('BOX', (0,0), (-1,-1), 0.25, colors.black)]
+    
+    data_len = len(equity_data)
+    
+    for each in range(3,data_len):
+        bg_color=colors.white
+        if each % 2 == 0:
+            bg_color = colors.whitesmoke
 
-    table=Table(tab_data)
-    table.setStyle(style)
+        #style.append(('BACKGROUND', (0,each), (-1,each), bg_color))
+
+    style2.append(('FONTNAME', (0,data_len+1), (-1,data_len+1),'Helvetica-Bold'))
+    style2.append(('LINEABOVE', (0,data_len+1), (-1,data_len+2),1,colors.black))
+
+    table=Table(portfolioDetails)
+    table.setStyle(TableStyle(style2))
     story.append(table)
 
+    story.append(Spacer(0,50))
+    
+    #table=Table(bond_data)
+    #table.setStyle(TableStyle(style2))
+    #story.append(table)
+
     #page 5
-    story.append(PageBreak())
+    #story.append(PageBreak())
     story.append(Paragraph("Net Position",styleH))
     story.append(Paragraph("As of "+str(portfolioDate),styleContent))
     story.append(Spacer(0,20))
     story.append(HRFlowable(width='100%', thickness=1, color=colors.black))
-
-    table1=Table(tab_data1)
+    story.append(Spacer(0,20))
+    
+    table1=Table(netPosition)
     table1.setStyle(style)
     story.append(table1)
 
@@ -170,7 +209,7 @@ def add_legend(draw_obj, chart, data,doc):
     draw_obj.add(legend)
 
 def pie_chart_with_legend(doc,FI,Equity):
-    data=['Fixed Income ('+str(FI[6])+'%)','Equity ('+str(Equity[6])+'%)']
+    data=['Bond ('+str(FI[-1])+'%)','Equity ('+str(Equity[-1])+'%)']
     drawing = Drawing(width=doc.width/2, height=250)
     my_title = String(140, -70, 'Asset-wise Allocation', fontSize=14)
     pie = Pie()
@@ -180,7 +219,7 @@ def pie_chart_with_legend(doc,FI,Equity):
     pie.y = -40
     pie.width=200
     pie.height=200
-    pie.data = [FI[6],Equity[6]]
+    pie.data = [FI[-1],Equity[-1]]
     pie.labels = data
     pie.slices.strokeWidth = 0.5
     drawing.add(my_title)
@@ -245,35 +284,31 @@ def line_chart(doc,months,portfolioDate,monthlyInv,monthlyVal,Valuation,Investme
 
 
 
-FI=[4531082, 4892169, 206462, 4.56, 217467, 4.45, 45.94]
-Equity=[5218922,5362021.34,-62131.35,-1.19,117832,2.2,50.36]
+
+###################Function Call Segment#######################
+
+
+FI=[4531082, 4892169, 206462, 4.56, 45.94]
+Equity=[5218922,5362021.34,-62131.35,-1.19,50.36]
 
 Investment=225323
 Valuation=865489
 monthlyInv=[23564,5782,84,79765,3243,65799,43344,5668,43,78900,3456,7543]
 monthlyVal=[85265,578954,8656,87533,29754,264256,23244,23435,243234,5767,576854,574321]
-portfolioHoldings=[
-    ['','Cost basis($)','Value on\n'+str(date.today()), 'Unrealized\ngain/loss($)', 'Unrealized\ngain/loss(%)','Est. annual\nincome($)','Current\nyield(%)','% of\nPortfolio'],
-    ['Fixed Income']+FI,
-    ['Equity']+Equity,
-    ['Total Portfolio']+[ round(a+b,2) for (a,b) in zip(FI,Equity) ]
+
+equityTrades=[
+    ['UBS BANK USA \n DEPOSIT ACCOUNT','IN8543975','Corporate','654','764.7','7643','764.97','245.65','9877','86','','','85.32%','1.69%']    
 ]
 
-
-#Page 4 data
-tab_data=[
-      ['','','','','Cost basis($)','Market Value($)','Unrealized \n gain/loss($)','Unrealized \n gain/loss(%)','Est. annual \n income($)','Current yield(%)','% of asset\n class','% of portfolio']
-      ,['Total Portfolio','','','','$9,967,814.44','$10,648,193.73','$145,102.43','1.46%','$336,076.01','3.16%','100%',]
-      ,['Cash','Quantity','Purchase price($) \n /Avg price','Price on \n'+str(date.today()),'Cost basis($)','Market Value($)','Unrealized\n gain/loss ($)','Unrealized \ngain/loss(%)','Est. annual \nincome($)','Current yield(%)','% of cash','% of portfolio']
-      ,['UBS BANK USA \n DEPOSIT ACCOUNT','179,478.88','1.00','1.00','179,478.88','179,478.88','0.00','0.00%','85.32%','1.69%']
-      ,['*FIRST EAGLE\n GLOBAL FUND CLASS C','','','1.00','5,867.17','6,681.39','814.22','13.88%','35.61%','','3.18%','0.06%']
-      ,['*GOLDMAN SACHS ASSET\n ALLOCATION GROWTH\n STRATEGY FUND CL A','','','1.00','18,770.90','17,544.77','-1,226.13','-6.53%','244.21','','8.34%','0.16%']
-      ,['TOTAL CASH','','','','$209,804.94','$210,353.44','$548.48','0.26%','$281.49','0.13%','100.00%','1.98%']
+bondTrades=[
+    ['UBS BANK USA \n DEPOSIT ACCOUNT','IN8543975','Corporate','654','764.7','7643','764.97','245.65','9877','86','78','1/12/2021','85.32%','1.69%']
+    ,['UBS BANK USA \n DEPOSIT ACCOUNT','IN8543975','Corporate','654','764.7','7643','764.97','245.65','9877','86','78','1/12/2021','85.32%','1.69%']
+    ,['UBS BANK USA \n DEPOSIT ACCOUNT','IN8543975','Corporate','654','764.7','7643','764.97','245.65','9877','86','78','1/12/2021','85.32%','1.69%']      
 ]
+
 #Page 5 data
-tab_data1=[
-      ['','','','','Cost basis($)','Market Value($)','Unrealized gain/loss ($)','Unrealized gain/loss(%)','Est. annual income($)','Current yield(%)','% of asset class','% of portfolio']
-      ,['Total Portfolio','','','','$9,967,814.44','$10,648,193.73','$145,102.43','1.46%','$336,076.01','3.16%','100%','100%']
+net_position=[
+        ['Total Portfolio','','','','','','$9,967,814.44','$10,648,193.73','$145,102.43','1.46%','100%','100%']
     ]
 
-generatePDF(FI,Equity,Investment,Valuation,monthlyInv,monthlyVal,portfolioHoldings,tab_data,tab_data1)
+generatePDF(FI,Equity,Investment,Valuation,monthlyInv,monthlyVal,equityTrades,bondTrades,net_position)
