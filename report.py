@@ -16,6 +16,7 @@ import random
 
 
 
+
 def generatePDF(FI,Equity,Investment,Valuation,monthlyInv,monthlyVal,equityTrades,bondTrades,net_position):
     
     logo= 'AIM_logo.jpg'
